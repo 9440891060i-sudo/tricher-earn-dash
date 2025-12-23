@@ -521,9 +521,7 @@ export default function Profile() {
                     <IdCard className="h-5 w-5 text-accent" />
                     Identity Verification
                   </CardTitle>
-                  <CardDescription>
-                    Required for payouts over $500
-                  </CardDescription>
+                
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">

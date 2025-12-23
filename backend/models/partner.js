@@ -25,6 +25,8 @@ const PartnerSchema = new mongoose.Schema({
     idNumber: String,
     idDocument: String,
   },
+  resetToken: { type: String },
+  resetExpires: { type: Date },
   totalSales: { type: Number, default: 0 },
   totalEarnings: { type: Number, default: 0 },
   pendingPayouts: { type: Number, default: 0 },

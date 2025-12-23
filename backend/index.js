@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -7,7 +8,20 @@ const bodyParser = require('body-parser');
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    "https://tricher-earn-dash.vercel.app",
+    "https://tricher-earn-dash-jkd9.vercel.app",
+    "http://localhost:8081"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
+}));
+
+// 🔥 THIS LINE IS CRITICAL
+app.options("*", cors());
+
 app.use(morgan('dev'));
 app.use(bodyParser.json());
 

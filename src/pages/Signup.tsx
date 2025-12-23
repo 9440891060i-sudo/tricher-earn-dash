@@ -42,7 +42,7 @@ export default function Signup() {
           <div className="text-center mb-8">
             <Link to="/" className="inline-flex items-center gap-2 mb-6">
               <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold">TP</span>
+                <img src="/favicon.png" alt="Tricher Partners" className="h-8 w-8 rounded-lg object-cover" />
               </div>
             </Link>
             <h1 className="text-2xl font-bold">Create your account</h1>

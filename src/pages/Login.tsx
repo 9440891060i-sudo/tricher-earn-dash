@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import apiFetch from '@/lib/api';
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -34,6 +35,11 @@ export default function Login() {
     }
   };
 
+  const handleForgot = async () => {
+    // navigate to the reset page
+    navigate('/reset');
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <div className="flex-1 flex items-center justify-center p-4">
@@ -41,7 +47,7 @@ export default function Login() {
           <div className="text-center mb-8">
             <Link to="/" className="inline-flex items-center gap-2 mb-6">
               <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold">TP</span>
+                <img src="/favicon.png" alt="Tricher Partners" className="h-8 w-8 rounded-lg object-cover" />
               </div>
             </Link>
             <h1 className="text-2xl font-bold">Welcome back</h1>
@@ -91,6 +97,10 @@ export default function Login() {
               Sign up
             </Link>
           </p>
+
+          <div className="mt-4 text-center">
+            <button onClick={handleForgot} className="text-sm text-accent hover:underline">Forgot password?</button>
+          </div>
 
         
         </div>

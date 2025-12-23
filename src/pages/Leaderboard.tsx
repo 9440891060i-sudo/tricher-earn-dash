@@ -21,7 +21,7 @@ export default function Leaderboard() {
           rank: i + 1,
           name: p.name,
           sales: p.totalSales || 0,
-          revenue: `₹${Math.round(p.totalSales || 0)}`,
+          revenue: `₹${Math.round(p.totalSales * 4499 || 0)}`,
           earnings: `₹${Math.round(p.totalEarnings || 0)}`
         })));
       } catch (err) {

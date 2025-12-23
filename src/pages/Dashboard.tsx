@@ -207,9 +207,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <div className="bg-background rounded-xl border border-border p-4 md:p-6">
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-                  {/* <DollarSign className="h-5 w-5 text-muted-foreground" /> */}
-                </div>
+                
               </div>
               <div className="text-2xl md:text-3xl font-bold">₹{stats.totalSales * 4499}</div>
               <div className="text-sm text-muted-foreground mt-1">Total Sales</div>
@@ -217,9 +215,7 @@ export default function Dashboard() {
 
             <div className="bg-background rounded-xl border border-border p-4 md:p-6">
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-                  {/* <TrendingUp className="h-5 w-5 text-muted-foreground" /> */}
-                </div>
+                
               </div>
               <div className="text-2xl md:text-3xl font-bold">₹{stats.totalEarnings}</div>
               <div className="text-sm text-muted-foreground mt-1">Total Earnings</div>
@@ -227,9 +223,7 @@ export default function Dashboard() {
 
             <div className="bg-background rounded-xl border border-border p-4 md:p-6">
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-                  {/* <Tag className="h-5 w-5 text-muted-foreground" /> */}
-                </div>
+                
               </div>
               <div className="text-2xl md:text-3xl font-bold">{stats.codeUses}</div>
               <div className="text-sm text-muted-foreground mt-1">Code Uses</div>
@@ -237,9 +231,7 @@ export default function Dashboard() {
 
             <div className="bg-background rounded-xl border border-border p-4 md:p-6">
               <div className="flex items-center justify-between mb-3">
-                <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-                  {/* <Clock className="h-5 w-5 text-muted-foreground" /> */}
-                </div>
+               
               </div>
               <div className="text-2xl md:text-3xl font-bold">₹{stats.pendingPayout}</div>
               <div className="text-sm text-muted-foreground mt-1">Pending Payout</div>

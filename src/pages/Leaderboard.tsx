@@ -17,7 +17,13 @@ export default function Leaderboard() {
       try {
         const res = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:4000') + '/api/partners/leaderboard/top');
         const data = await res.json();
-        if (res.ok) setList(data.map((p: any, i: number) => ({ rank: i + 1, name: p.name, sales: p.totalSales || 0, revenue: `$${Math.round((p.totalSales || 0))}`, earnings: `$${Math.round((p.totalEarnings || 0))}` })));
+        if (res.ok) setList(data.map((p: any, i: number) => ({
+          rank: i + 1,
+          name: p.name,
+          sales: p.totalSales || 0,
+          revenue: `₹${Math.round(p.totalSales || 0)}`,
+          earnings: `₹${Math.round(p.totalEarnings || 0)}`
+        })));
       } catch (err) {
         // ignore
       }
@@ -26,7 +32,8 @@ export default function Leaderboard() {
 
   const sortedData = [...list].sort((a, b) => {
     if (sortBy === "sales") return b.sales - a.sales;
-    return parseFloat(b.revenue.replace(/[₹,]/g, "")) - parseFloat(a.revenue.replace(/[₹,]/g, ""));
+    // strip any non-numeric characters (currency symbols, commas) before parsing
+    return parseFloat(b.revenue.replace(/[^\d.-]/g, "")) - parseFloat(a.revenue.replace(/[^\d.-]/g, ""));
   });
 
   const getRankIcon = (rank: number) => {

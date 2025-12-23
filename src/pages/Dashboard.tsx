@@ -84,7 +84,7 @@ export default function Dashboard() {
           console.warn('External create failed', e);
         }
 
-        const uiItem = { id: data._id, code: data.code, commission: data.commission, discount: data.discount_value, uses: data.uses || 0, earnings: '$0' };
+        const uiItem = { id: data._id, code: data.code, commission: data.commission, discount: data.discount_value, uses: data.uses || 0, earnings: '₹0' };
         setCodes((c) => [uiItem, ...c]);
         setNewCode('');
         toast({ title: 'Code created!', description: `Your code ${data.code} is now active.` });
@@ -211,7 +211,7 @@ export default function Dashboard() {
                   <DollarSign className="h-5 w-5 text-muted-foreground" />
                 </div>
               </div>
-              <div className="text-2xl md:text-3xl font-bold">${stats.totalSales}</div>
+              <div className="text-2xl md:text-3xl font-bold">₹{stats.totalSales}</div>
               <div className="text-sm text-muted-foreground mt-1">Total Sales</div>
             </div>
 
@@ -221,7 +221,7 @@ export default function Dashboard() {
                   <TrendingUp className="h-5 w-5 text-muted-foreground" />
                 </div>
               </div>
-              <div className="text-2xl md:text-3xl font-bold">${stats.totalEarnings}</div>
+              <div className="text-2xl md:text-3xl font-bold">₹{stats.totalEarnings}</div>
               <div className="text-sm text-muted-foreground mt-1">Total Earnings</div>
             </div>
 
@@ -241,7 +241,7 @@ export default function Dashboard() {
                   <Clock className="h-5 w-5 text-muted-foreground" />
                 </div>
               </div>
-              <div className="text-2xl md:text-3xl font-bold">${stats.pendingPayout}</div>
+              <div className="text-2xl md:text-3xl font-bold">₹{stats.pendingPayout}</div>
               <div className="text-sm text-muted-foreground mt-1">Pending Payout</div>
             </div>
           </div>
@@ -374,9 +374,9 @@ export default function Dashboard() {
           <div className="bg-background rounded-xl border border-border p-6">
               <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold">Payouts</h2>
-              {stats.pendingPayout > 0 ? (
+                {stats.pendingPayout > 0 ? (
                 <Button onClick={handleRequestPayout} size="sm" variant="accent">
-                  Request Payout ({`$${stats.pendingPayout}`})
+                  Request Payout ({`₹${stats.pendingPayout}`})
                 </Button>
               ) : (
                 <Button disabled size="sm">

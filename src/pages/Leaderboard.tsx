@@ -37,7 +37,7 @@ export default function Leaderboard() {
 
   const sortedData = [...(list.length ? list : leaderboardData)].sort((a, b) => {
     if (sortBy === "sales") return b.sales - a.sales;
-    return parseFloat(b.revenue.replace(/[$,]/g, "")) - parseFloat(a.revenue.replace(/[$,]/g, ""));
+    return parseFloat(b.revenue.replace(/[₹,]/g, "")) - parseFloat(a.revenue.replace(/[₹,]/g, ""));
   });
 
   const getRankIcon = (rank: number) => {

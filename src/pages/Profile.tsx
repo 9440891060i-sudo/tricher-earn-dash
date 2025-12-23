@@ -1,5 +1,5 @@
 import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
+// import { Footer } from "@/components/layout/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import apiFetch from "@/lib/api";
 import { User, Instagram, Youtube, Twitter, Wallet, Building2, CreditCard, Upload, IdCard, MapPin } from "lucide-react";
 
 export default function Profile() {
@@ -31,11 +32,45 @@ export default function Profile() {
     method: "bank",
     bankName: "",
     accountNumber: "",
-    routingNumber: "",
+    ifscCode: "",
     accountHolderName: "",
     cryptoWallet: "",
     cryptoNetwork: "trc20",
   });
+
+  const INDIAN_BANKS = [
+    "State Bank of India (SBI)",
+    "Punjab National Bank (PNB)",
+    "Bank of Baroda",
+    "Bank of India",
+    "Canara Bank",
+    "Central Bank of India",
+    "Indian Bank",
+    "Indian Overseas Bank",
+    "UCO Bank",
+    "Union Bank of India",
+    "Bank of Maharashtra",
+    "Punjab & Sind Bank",
+    "Axis Bank",
+    "HDFC Bank",
+    "ICICI Bank",
+    "Kotak Mahindra Bank",
+    "IndusInd Bank",
+    "IDBI Bank",
+    "IDFC First Bank",
+    "Bandhan Bank",
+    "CSB Bank",
+    "City Union Bank",
+    "DCB Bank",
+    "Dhanlaxmi Bank",
+    "Federal Bank",
+    "Yes Bank",
+    "South Indian Bank",
+    "Karnataka Bank",
+    "Karur Vysya Bank",
+  ];
+
+  const [showBankSuggestions, setShowBankSuggestions] = useState(false);
 
   const [identity, setIdentity] = useState({
     address: "",
@@ -48,31 +83,74 @@ export default function Profile() {
   });
 
   const handleSaveProfile = () => {
-    toast({
-      title: "Profile Updated",
-      description: "Your personal information has been saved.",
-    });
+    (async () => {
+      try {
+        const partnerRaw = localStorage.getItem('tricher_partner');
+        if (!partnerRaw) throw new Error('Please sign in');
+        const partner = JSON.parse(partnerRaw);
+        const payload = { name: profile.fullName, email: profile.email, phone: profile.phone };
+        const updated = await apiFetch(`/api/partners/${partner.id}`, { method: 'PUT', body: JSON.stringify(payload) });
+        localStorage.setItem('tricher_partner', JSON.stringify({ id: updated._id, name: updated.name, email: updated.email }));
+        toast({ title: 'Profile Updated', description: 'Your personal information has been saved.' });
+      } catch (err: any) {
+        toast({ title: 'Error', description: err.error || err.message || 'Update failed' });
+      }
+    })();
   };
 
   const handleSaveSocial = () => {
-    toast({
-      title: "Social Media Updated",
-      description: "Your social media information has been saved.",
-    });
+    (async () => {
+      try {
+        const partnerRaw = localStorage.getItem('tricher_partner');
+        if (!partnerRaw) throw new Error('Please sign in');
+        const partner = JSON.parse(partnerRaw);
+        const payload = { social: { platform: socialMedia.platform, handle: socialMedia.handle, followers: socialMedia.followers } };
+        const updated = await apiFetch(`/api/partners/${partner.id}`, { method: 'PUT', body: JSON.stringify(payload) });
+        toast({ title: 'Social Media Updated', description: 'Your social media information has been saved.' });
+      } catch (err: any) {
+        toast({ title: 'Error', description: err.error || err.message || 'Update failed' });
+      }
+    })();
   };
 
   const handleSavePayment = () => {
-    toast({
-      title: "Payment Details Updated",
-      description: "Your payment information has been saved securely.",
-    });
+    (async () => {
+      try {
+        const partnerRaw = localStorage.getItem('tricher_partner');
+        if (!partnerRaw) throw new Error('Please sign in');
+        const partner = JSON.parse(partnerRaw);
+        let payload: any = {};
+        if (payment.method === 'bank') {
+          payload = { bank: { bankName: payment.bankName, accountNumber: payment.accountNumber, ifscCode: payment.ifscCode, accountHolderName: payment.accountHolderName } };
+        } else if (payment.method === 'crypto') {
+          payload = { crypto: { wallet: payment.cryptoWallet, network: payment.cryptoNetwork } };
+        }
+        const updated = await apiFetch(`/api/partners/${partner.id}`, { method: 'PUT', body: JSON.stringify(payload) });
+        toast({ title: 'Payment Details Updated', description: 'Your payment information has been saved securely.' });
+      } catch (err: any) {
+        toast({ title: 'Error', description: err.error || err.message || 'Update failed' });
+      }
+    })();
   };
 
   const handleSaveIdentity = () => {
-    toast({
-      title: "Identity Verified",
-      description: "Your identity documents have been submitted for review.",
-    });
+    (async () => {
+      try {
+        const partnerRaw = localStorage.getItem('tricher_partner');
+        if (!partnerRaw) throw new Error('Please sign in');
+        const partner = JSON.parse(partnerRaw);
+        if (!identity.idDocument) throw new Error('No document selected');
+        const fd = new FormData();
+        fd.append('document', identity.idDocument as File);
+        // use apiFetch so Authorization header is attached and Content-Type is correct for FormData
+        const data = await apiFetch('/api/identity/upload', { method: 'POST', body: fd });
+        // update partner identity reference
+        await apiFetch(`/api/partners/${partner.id}`, { method: 'PUT', body: JSON.stringify({ identity: { idDocument: data.filename, idNumber: identity.idNumber, idType: identity.idType } }) });
+        toast({ title: 'Identity Submitted', description: 'Your documents were uploaded.' });
+      } catch (err: any) {
+        toast({ title: 'Error', description: err.error || err.message || 'Upload failed' });
+      }
+    })();
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,6 +161,36 @@ export default function Profile() {
         title: "Document Uploaded",
         description: `${file.name} has been uploaded successfully.`,
       });
+    }
+  };
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const partnerRaw = localStorage.getItem('tricher_partner');
+        if (!partnerRaw) return;
+        const partner = JSON.parse(partnerRaw);
+        const data = await apiFetch(`/api/partners/${partner.id}`);
+        setProfile({ fullName: data.name || '', email: data.email || '', phone: data.phone || '', bio: '' });
+        if (data.social) setSocialMedia({ platform: data.social.platform || 'instagram', handle: data.social.handle || '', followers: data.social.followers || '' });
+        if (data.bank) setPayment({ ...payment, method: 'bank', bankName: data.bank.bankName || '', accountNumber: data.bank.accountNumber || '', ifscCode: data.bank.ifscCode || '', accountHolderName: data.bank.accountHolderName || '' });
+        else if (data.crypto) setPayment({ ...payment, method: 'crypto', cryptoWallet: data.crypto.wallet || '', cryptoNetwork: data.crypto.network || 'trc20' });
+        if (data.identity) setIdentity({ ...identity, idNumber: data.identity.idNumber || '', idDocument: null });
+      } catch (err) {
+        // ignore
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const [payoutAmount, setPayoutAmount] = useState(0);
+
+  const requestPayout = async () => {
+    try {
+      const res = await apiFetch('/api/payouts/request', { method: 'POST', body: JSON.stringify({ amount: payoutAmount }) });
+      toast({ title: 'Payout requested', description: `Requested ${payoutAmount}` });
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.error || err.message || 'Request failed' });
     }
   };
 
@@ -295,13 +403,40 @@ export default function Profile() {
 
                   {payment.method === "bank" && (
                     <>
-                      <div className="space-y-2">
+                      <div className="space-y-2 relative">
                         <Label htmlFor="bankName">Bank Name</Label>
                         <Input
                           id="bankName"
                           value={payment.bankName}
                           onChange={(e) => setPayment({ ...payment, bankName: e.target.value })}
-                          placeholder="Enter bank name"
+                          onFocus={() => setShowBankSuggestions(true)}
+                          placeholder="Start typing to see suggestions"
+                        />
+
+                        {showBankSuggestions && payment.bankName.trim().length > 0 && (
+                          <ul className="absolute left-0 right-0 z-20 mt-1 bg-background border border-border rounded-md shadow-sm max-h-44 overflow-auto">
+                            {INDIAN_BANKS.filter((b) =>
+                              b.toLowerCase().includes(payment.bankName.toLowerCase())
+                            )
+                              .slice(0, 8)
+                              .map((b) => (
+                                <li
+                                  key={b}
+                                  onMouseDown={(e) => {
+                                    // use onMouseDown to set before input blur
+                                    e.preventDefault();
+                                    setPayment({ ...payment, bankName: b });
+                                    setShowBankSuggestions(false);
+                                  }}
+                                  className="px-3 py-2 cursor-pointer hover:bg-accent/10"
+                                >
+                                  {b}
+                                </li>
+                              ))}
+                          </ul>
+                        )}
+                        <div
+                          onBlur={() => setTimeout(() => setShowBankSuggestions(false), 150)}
                         />
                       </div>
                       <div className="space-y-2">
@@ -324,12 +459,12 @@ export default function Profile() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="routingNumber">Routing Number</Label>
+                          <Label htmlFor="ifscCode">IFSC Code</Label>
                           <Input
-                            id="routingNumber"
-                            value={payment.routingNumber}
-                            onChange={(e) => setPayment({ ...payment, routingNumber: e.target.value })}
-                            placeholder="Routing number"
+                            id="ifscCode"
+                            value={payment.ifscCode}
+                            onChange={(e) => setPayment({ ...payment, ifscCode: e.target.value })}
+                            placeholder="IFSC code (e.g., HDFC0000123)"
                           />
                         </div>
                       </div>
@@ -497,7 +632,7 @@ export default function Profile() {
         </div>
       </main>
 
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 }

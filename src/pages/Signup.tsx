@@ -16,17 +16,23 @@ export default function Signup() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
-    // Simulate signup
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    toast({
-      title: "Account created!",
-      description: "Welcome to Tricher Partners. Let's get started.",
-    });
-
-    setIsLoading(false);
-    navigate("/dashboard");
+    try {
+      const res = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:4000') + '/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) throw data;
+      localStorage.setItem('tricher_token', data.token);
+      if (data.partner) localStorage.setItem('tricher_partner', JSON.stringify(data.partner));
+      toast({ title: 'Account created!', description: 'Welcome to Tricher Partners.' });
+      navigate('/dashboard');
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.error || err.message || 'Signup failed' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -97,16 +103,12 @@ export default function Signup() {
 
           <p className="text-center text-sm text-muted-foreground mt-6">
             Already have an account?{" "}
-            <Link to="/login" className="text-accent hover:underline font-medium">
+            <Link to="/" className="text-accent hover:underline font-medium">
               Sign in
             </Link>
           </p>
 
-          <div className="mt-8 pt-6 border-t border-border text-center">
-            <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
-              ← Back to home
-            </Link>
-          </div>
+         
         </div>
       </div>
     </div>

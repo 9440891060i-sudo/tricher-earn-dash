@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
+// import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,27 +16,16 @@ import {
   Trash2,
   Check
 } from "lucide-react";
+import apiFetch from '@/lib/api';
 
-const statsData = [
-  { label: "Total Sales", value: "$12,450", icon: DollarSign, change: "+12%" },
-  { label: "Total Earnings", value: "$3,112", icon: TrendingUp, change: "+8%" },
-  { label: "Code Uses", value: "847", icon: Tag, change: "+23%" },
-  { label: "Pending Payout", value: "$450", icon: Clock, change: null },
-];
+// placeholder icons mapping; values are loaded into `stats` state
 
-const initialCodes = [
-  { id: 1, code: "SARAH15", commission: 15, discount: 10, uses: 234, earnings: "$1,755" },
-  { id: 2, code: "SARAH10", commission: 10, discount: 15, uses: 156, earnings: "$780" },
-];
-
-const payoutHistory = [
-  { id: 1, amount: "$500", status: "paid", date: "Dec 15, 2024" },
-  { id: 2, amount: "$750", status: "paid", date: "Nov 15, 2024" },
-  { id: 3, amount: "$450", status: "pending", date: "Dec 20, 2024" },
-];
+const initialCodes: any[] = [];
 
 export default function Dashboard() {
-  const [codes, setCodes] = useState(initialCodes);
+  const [stats, setStats] = useState({ totalSales: 0, totalEarnings: 0, codeUses: 0, pendingPayout: 0 });
+  const [payoutsState, setPayoutsState] = useState<any[]>([]);
+  const [codes, setCodes] = useState<any[]>(initialCodes);
   const [newCode, setNewCode] = useState("");
   const [commission, setCommission] = useState(15);
   const [discount, setDiscount] = useState(10);
@@ -61,47 +50,65 @@ export default function Dashboard() {
   };
 
   const handleCreateCode = () => {
-    if (!newCode.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a code name",
-        variant: "destructive",
-      });
-      return;
-    }
+    (async () => {
+      if (!newCode.trim()) {
+        toast({ title: 'Error', description: 'Please enter a code name', variant: 'destructive' });
+        return;
+      }
+      if (!isValid) {
+        toast({ title: 'Error', description: 'Commission + Discount cannot exceed 25%', variant: 'destructive' });
+        return;
+      }
+      try {
+        const payload = {
+          discount_value: discount,
+          code: newCode.toUpperCase(),
+          max_uses: 500,
+          commission,
+        };
+        // create on local backend
+        const data = await apiFetch('/api/coupons', { method: 'POST', body: JSON.stringify(payload) });
+        // also create on external API
+        try {
+          const extRes = await fetch('https://api.tricher.app/api/coupons', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('tricher_token') || ''}` },
+            body: JSON.stringify(payload),
+          });
+          // ignore ext errors but log
+          if (!extRes.ok) {
+            const extErr = await extRes.json().catch(() => ({}));
+            console.warn('External coupon create failed', extErr);
+          }
+        } catch (e) {
+          console.warn('External create failed', e);
+        }
 
-    if (!isValid) {
-      toast({
-        title: "Error",
-        description: "Commission + Discount cannot exceed 25%",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const code = {
-      id: Date.now(),
-      code: newCode.toUpperCase(),
-      commission,
-      discount,
-      uses: 0,
-      earnings: "$0",
-    };
-
-    setCodes([code, ...codes]);
-    setNewCode("");
-    toast({
-      title: "Code created!",
-      description: `Your code ${code.code} is now active.`,
-    });
+        const uiItem = { id: data._id, code: data.code, commission: data.commission, discount: data.discount_value, uses: data.uses || 0, earnings: '$0' };
+        setCodes((c) => [uiItem, ...c]);
+        setNewCode('');
+        toast({ title: 'Code created!', description: `Your code ${data.code} is now active.` });
+      } catch (err: any) {
+        toast({ title: 'Error', description: err.error || err.message || 'Create coupon failed' });
+      }
+    })();
   };
 
   const handleDeleteCode = (id: number) => {
-    setCodes(codes.filter(c => c.id !== id));
-    toast({
-      title: "Code deleted",
-      description: "The discount code has been removed.",
-    });
+    (async () => {
+      try {
+        const item = codes.find((x) => x.id === id || x._id === id || x.code === id);
+        if (!item) return;
+        const code = item.code;
+        // delete from local backend only
+        await apiFetch(`/api/coupons/${code}`, { method: 'DELETE' });
+        // remove locally from UI
+        setCodes((list) => list.filter(c => c.code !== code));
+        toast({ title: 'Code deleted', description: 'The discount code has been removed.' });
+      } catch (err: any) {
+        toast({ title: 'Error', description: err.error || err.message || 'Delete failed' });
+      }
+    })();
   };
 
   const handleCopyCode = (code: string) => {
@@ -114,12 +121,76 @@ export default function Dashboard() {
     });
   };
 
-  const handleRequestPayout = () => {
-    toast({
-      title: "Payout requested",
-      description: "Your payout request has been submitted for review.",
-    });
+  const handleRequestPayout = async () => {
+    const amount = stats.pendingPayout;
+    if (!amount || amount <= 0) {
+      toast({ title: 'No payout available', description: 'You have no pending payout to request.' });
+      return;
+    }
+    try {
+      const data = await apiFetch('/api/payouts/request', { method: 'POST', body: JSON.stringify({ amount }) });
+      setPayoutsState((p) => [{ id: data._id, amount: `$${data.amount}`, status: data.status, date: new Date(data.requested_at).toLocaleDateString() }, ...p]);
+      // clear pending payout locally
+      setStats((s) => ({ ...s, pendingPayout: 0 }));
+      toast({ title: 'Payout requested', description: 'Your payout request has been submitted for review.' });
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.error || err.message || 'Request failed' });
+    }
   };
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const partnerRaw = localStorage.getItem('tricher_partner');
+        if (!partnerRaw) return;
+        const partner = JSON.parse(partnerRaw);
+        // fetch partner metrics
+        const pData = await apiFetch(`/api/partners/${partner.id}`);
+        setStats({ totalSales: pData.totalSales || 0, totalEarnings: pData.totalEarnings || 0, codeUses: 0, pendingPayout: pData.pendingPayouts || 0 });
+
+        // fetch coupons and compute earnings via usage endpoint
+        const coupons = await apiFetch('/api/coupons');
+        const codeItems: any[] = [];
+        let aggSales = 0;
+        let aggEarnings = 0;
+        let aggUses = 0;
+        for (const d of coupons) {
+          // call external usage analytics for richer data
+          let usage: any = { usageCount: 0, totalSales: 0 };
+          try {
+            const extRes = await fetch(`https://api.tricher.app/api/coupons/${d.code}/usage`, {
+              headers: { Authorization: `Bearer ${localStorage.getItem('tricher_token') || ''}` }
+            });
+            if (extRes.ok) usage = await extRes.json();
+            else {
+              // fallback to local usage if external fails
+              usage = await apiFetch(`/api/coupons/${d.code}/usage`).catch(() => ({ usageCount: d.uses || 0, totalSales: 0 }));
+            }
+          } catch (e) {
+            usage = await apiFetch(`/api/coupons/${d.code}/usage`).catch(() => ({ usageCount: d.uses || 0, totalSales: 0 }));
+          }
+          const totalSales = usage.totalSales || 0;
+          const uses = usage.usageCount || d.uses || 0;
+          const avgOrder = uses > 0 ? Math.round((totalSales / uses) * 100) / 100 : 0;
+          const earnings = Math.round((totalSales * ((d.commission || 0) / 100)) * 100) / 100; // round to 2 decimals
+          const commissionPerUse = uses > 0 ? Math.round((earnings / uses) * 100) / 100 : 0;
+          aggSales += totalSales;
+          aggEarnings += earnings;
+          aggUses += uses;
+          codeItems.push({ id: d._id, code: d.code, commission: d.commission, discount: d.discount_value, uses, earnings: `$${earnings}`, avgOrder: `$${avgOrder}`, commissionPerUse: `$${commissionPerUse}` });
+        }
+        setCodes(codeItems);
+        // update stats from aggregated coupon usage if partner metrics were zero
+        setStats((s) => ({ ...s, codeUses: aggUses, totalSales: aggSales || s.totalSales, totalEarnings: Math.round((aggEarnings || s.totalEarnings) * 100) / 100 }));
+
+        // fetch payouts
+        const payouts = await apiFetch('/api/payouts');
+        setPayoutsState(payouts.map((p: any) => ({ id: p._id, amount: `$${p.amount}`, status: p.status, date: new Date(p.requested_at).toLocaleDateString() })));
+      } catch (err) {
+        // ignore
+      }
+    })();
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col bg-secondary/20">
@@ -134,20 +205,45 @@ export default function Dashboard() {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {statsData.map((stat) => (
-              <div key={stat.label} className="bg-background rounded-xl border border-border p-4 md:p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-                    <stat.icon className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  {stat.change && (
-                    <span className="text-xs font-medium text-success">{stat.change}</span>
-                  )}
+            <div className="bg-background rounded-xl border border-border p-4 md:p-6">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
+                  <DollarSign className="h-5 w-5 text-muted-foreground" />
                 </div>
-                <div className="text-2xl md:text-3xl font-bold">{stat.value}</div>
-                <div className="text-sm text-muted-foreground mt-1">{stat.label}</div>
               </div>
-            ))}
+              <div className="text-2xl md:text-3xl font-bold">${stats.totalSales}</div>
+              <div className="text-sm text-muted-foreground mt-1">Total Sales</div>
+            </div>
+
+            <div className="bg-background rounded-xl border border-border p-4 md:p-6">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
+                  <TrendingUp className="h-5 w-5 text-muted-foreground" />
+                </div>
+              </div>
+              <div className="text-2xl md:text-3xl font-bold">${stats.totalEarnings}</div>
+              <div className="text-sm text-muted-foreground mt-1">Total Earnings</div>
+            </div>
+
+            <div className="bg-background rounded-xl border border-border p-4 md:p-6">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
+                  <Tag className="h-5 w-5 text-muted-foreground" />
+                </div>
+              </div>
+              <div className="text-2xl md:text-3xl font-bold">{stats.codeUses}</div>
+              <div className="text-sm text-muted-foreground mt-1">Code Uses</div>
+            </div>
+
+            <div className="bg-background rounded-xl border border-border p-4 md:p-6">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
+                  <Clock className="h-5 w-5 text-muted-foreground" />
+                </div>
+              </div>
+              <div className="text-2xl md:text-3xl font-bold">${stats.pendingPayout}</div>
+              <div className="text-sm text-muted-foreground mt-1">Pending Payout</div>
+            </div>
           </div>
 
           {/* Discount Code Manager */}
@@ -258,9 +354,8 @@ export default function Dashboard() {
                     </div>
                     <div className="flex items-center justify-between sm:justify-end gap-6">
                       <div className="text-sm">
-                        <span className="text-muted-foreground">{code.uses} uses</span>
-                        <span className="mx-2 text-border">·</span>
-                        <span className="font-semibold text-accent">{code.earnings}</span>
+                        <div className="text-xs text-muted-foreground">{code.uses} uses · Avg {code.avgOrder || ''} · Comm/use {code.commissionPerUse || ''}</div>
+                        <div className="font-semibold text-accent mt-1">{code.earnings}</div>
                       </div>
                       <button 
                         onClick={() => handleDeleteCode(code.id)}
@@ -277,15 +372,21 @@ export default function Dashboard() {
 
           {/* Payouts */}
           <div className="bg-background rounded-xl border border-border p-6">
-            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold">Payouts</h2>
-              <Button onClick={handleRequestPayout} size="sm" variant="accent">
-                Request Payout
-              </Button>
+              {stats.pendingPayout > 0 ? (
+                <Button onClick={handleRequestPayout} size="sm" variant="accent">
+                  Request Payout ({`$${stats.pendingPayout}`})
+                </Button>
+              ) : (
+                <Button disabled size="sm">
+                  No Payout Available
+                </Button>
+              )}
             </div>
 
             <div className="space-y-3">
-              {payoutHistory.map((payout) => (
+              {payoutsState.map((payout) => (
                 <div 
                   key={payout.id}
                   className="flex items-center justify-between p-4 rounded-lg bg-secondary/30 border border-border"
@@ -310,7 +411,7 @@ export default function Dashboard() {
         </div>
       </main>
 
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 }

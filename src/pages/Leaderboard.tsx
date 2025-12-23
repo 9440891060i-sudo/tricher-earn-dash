@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
+// import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Trophy, TrendingUp, Users, Star, Medal } from "lucide-react";
 
@@ -21,8 +21,21 @@ type SortKey = "revenue" | "sales";
 
 export default function Leaderboard() {
   const [sortBy, setSortBy] = useState<SortKey>("revenue");
+  const [list, setList] = useState<any[]>([]);
 
-  const sortedData = [...leaderboardData].sort((a, b) => {
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:4000') + '/api/partners/leaderboard/top');
+        const data = await res.json();
+        if (res.ok) setList(data.map((p: any, i: number) => ({ rank: i + 1, name: p.name, sales: p.totalSales || 0, revenue: `$${Math.round((p.totalSales || 0))}`, earnings: `$${Math.round((p.totalEarnings || 0))}` })));
+      } catch (err) {
+        // ignore
+      }
+    })();
+  }, []);
+
+  const sortedData = [...(list.length ? list : leaderboardData)].sort((a, b) => {
     if (sortBy === "sales") return b.sales - a.sales;
     return parseFloat(b.revenue.replace(/[$,]/g, "")) - parseFloat(a.revenue.replace(/[$,]/g, ""));
   });
@@ -49,51 +62,6 @@ export default function Leaderboard() {
         <div className="container max-w-3xl">
           <div className="text-center mb-8">
             <h1 className="text-2xl md:text-3xl font-bold mb-2">Partner Leaderboard</h1>
-            <p className="text-muted-foreground">Top performing partners this month</p>
-          </div>
-
-          {/* Top 3 Highlight */}
-          <div className="grid grid-cols-3 gap-3 md:gap-4 mb-8">
-            {sortedData.slice(0, 3).map((partner, index) => (
-              <div 
-                key={partner.rank}
-                className={`text-center p-4 md:p-6 rounded-xl border ${
-                  index === 0 ? "bg-yellow-50 border-yellow-200 md:-mt-2" :
-                  index === 1 ? "bg-gray-50 border-gray-200" :
-                  "bg-orange-50 border-orange-200"
-                }`}
-              >
-                <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-background border-2 border-current flex items-center justify-center mx-auto mb-3 text-lg md:text-xl font-bold">
-                  {partner.avatar}
-                </div>
-                <div className="flex justify-center mb-2">
-                  {getRankIcon(index + 1)}
-                </div>
-                <div className="font-semibold text-sm md:text-base">{partner.name}</div>
-                <div className="text-accent font-bold text-lg md:text-xl mt-1">{partner.earnings}</div>
-                <div className="text-xs text-muted-foreground mt-1">{partner.sales} sales</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Sort Buttons */}
-          <div className="flex gap-2 mb-6">
-            <Button
-              variant={sortBy === "revenue" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSortBy("revenue")}
-            >
-              <TrendingUp className="h-4 w-4 mr-2" />
-              By Revenue
-            </Button>
-            <Button
-              variant={sortBy === "sales" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSortBy("sales")}
-            >
-              <Users className="h-4 w-4 mr-2" />
-              By Referrals
-            </Button>
           </div>
 
           {/* Full List */}
@@ -120,7 +88,7 @@ export default function Leaderboard() {
                 </div>
                 <div className="col-span-5 flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-sm font-medium">
-                    {partner.avatar}
+                    {partner.avatar || (partner.name || '').split(' ').map((s:any)=>s[0]).slice(0,2).join('')}
                   </div>
                   <span className="font-medium">{partner.name}</span>
                 </div>
@@ -143,7 +111,7 @@ export default function Leaderboard() {
         </div>
       </main>
 
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 }

@@ -15,17 +15,23 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
-    // Simulate login
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    toast({
-      title: "Welcome back!",
-      description: "You've been logged in successfully.",
-    });
-
-    setIsLoading(false);
-    navigate("/dashboard");
+    try {
+      const res = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:4000') + '/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) throw data;
+      localStorage.setItem('tricher_token', data.token);
+      if (data.partner) localStorage.setItem('tricher_partner', JSON.stringify(data.partner));
+      toast({ title: 'Welcome back!', description: "You've been logged in successfully." });
+      navigate('/dashboard');
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.error || err.message || 'Login failed' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -86,11 +92,7 @@ export default function Login() {
             </Link>
           </p>
 
-          <div className="mt-8 pt-6 border-t border-border text-center">
-            <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
-              ← Back to home
-            </Link>
-          </div>
+        
         </div>
       </div>
     </div>

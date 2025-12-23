@@ -1,6 +1,7 @@
 import { useState } from "react";
+import apiFetch from "@/lib/api";
 import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
+// import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,33 +15,6 @@ import {
 } from "@/components/ui/accordion";
 import { MessageSquare, Mail, HelpCircle } from "lucide-react";
 
-const faqs = [
-  {
-    question: "How do I get paid?",
-    answer: "You can request a payout anytime from your dashboard once you've earned at least $50. We process payouts within 3-5 business days via bank transfer or PayPal."
-  },
-  {
-    question: "How does the 25% margin split work?",
-    answer: "You have 25% total to work with. You decide how to split it between your commission (what you earn) and the customer discount (what they save). For example: 15% commission + 10% discount, or 20% commission + 5% discount."
-  },
-  {
-    question: "When do I earn commissions?",
-    answer: "You earn a commission every time someone makes a purchase using your referral code. Commissions are credited to your account immediately after the order is completed."
-  },
-  {
-    question: "Can I have multiple discount codes?",
-    answer: "Yes! You can create as many codes as you want with different commission/discount splits. This lets you test what works best for your audience."
-  },
-  {
-    question: "How do I track my performance?",
-    answer: "Your dashboard shows real-time analytics including total sales, code uses, earnings per code, and more. You can see exactly which codes are performing best."
-  },
-  {
-    question: "What happens if a customer returns a product?",
-    answer: "If a customer returns a product, the commission for that sale will be deducted from your balance. We only pay commissions on completed, non-refunded orders."
-  },
-];
-
 export default function Support() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -52,20 +26,21 @@ export default function Support() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    toast({
-      title: "Message sent!",
-      description: "We'll get back to you within 24 hours.",
-    });
-
-    setName("");
-    setEmail("");
-    setSubject("");
-    setMessage("");
-    setIsSubmitting(false);
+    try {
+      await apiFetch('/api/support', {
+        method: 'POST',
+        body: JSON.stringify({ name, email, subject, message })
+      });
+      toast({ title: 'Message sent!', description: "We'll get back to you within 24 hours." });
+      setName('');
+      setEmail('');
+      setSubject('');
+      setMessage('');
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.error || err.message || 'Failed to send message' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -81,7 +56,7 @@ export default function Support() {
 
           <div className="grid md:grid-cols-2 gap-8">
             {/* Contact Form */}
-            <div className="bg-background rounded-xl border border-border p-6">
+            <div className="bg-background rounded-xl border border-border p-6 md:col-span-2 mx-auto w-full max-w-md">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
                   <MessageSquare className="h-5 w-5 text-accent" />
@@ -155,42 +130,19 @@ export default function Support() {
                   <Mail className="h-4 w-4" />
                   <span>Or email us directly at </span>
                   <a href="mailto:support@tricher.com" className="text-accent hover:underline">
-                    support@tricher.com
+                    support@tricher.app
                   </a>
                 </div>
               </div>
             </div>
 
             {/* FAQs */}
-            <div className="bg-background rounded-xl border border-border p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-                  <HelpCircle className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div>
-                  <h2 className="font-semibold">Frequently Asked Questions</h2>
-                  <p className="text-sm text-muted-foreground">Quick answers to common questions</p>
-                </div>
-              </div>
-
-              <Accordion type="single" collapsible className="w-full">
-                {faqs.map((faq, index) => (
-                  <AccordionItem key={index} value={`item-${index}`}>
-                    <AccordionTrigger className="text-left text-sm hover:no-underline">
-                      {faq.question}
-                    </AccordionTrigger>
-                    <AccordionContent className="text-sm text-muted-foreground">
-                      {faq.answer}
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </div>
+        
           </div>
         </div>
       </main>
 
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 }

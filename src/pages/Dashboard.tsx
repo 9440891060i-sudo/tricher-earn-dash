@@ -177,7 +177,7 @@ export default function Dashboard() {
           aggSales += totalSales;
           aggEarnings += earnings;
           aggUses += uses;
-          codeItems.push({ id: d._id, code: d.code, commission: d.commission, discount: d.discount_value, uses, earnings: `$${earnings}`, avgOrder: `$${avgOrder}`, commissionPerUse: `$${commissionPerUse}` });
+          codeItems.push({ id: d._id, code: d.code, commission: d.commission, discount: d.discount_value, uses, earnings: `₹${earnings}`, avgOrder: `₹${avgOrder}`, commissionPerUse: `₹${commissionPerUse}` });
         }
         setCodes(codeItems);
         // update stats from aggregated coupon usage if partner metrics were zero
@@ -185,7 +185,7 @@ export default function Dashboard() {
 
         // fetch payouts
         const payouts = await apiFetch('/api/payouts');
-        setPayoutsState(payouts.map((p: any) => ({ id: p._id, amount: `$${p.amount}`, status: p.status, date: new Date(p.requested_at).toLocaleDateString() })));
+        setPayoutsState(payouts.map((p: any) => ({ id: p._id, amount: `₹${p.amount}`, status: p.status, date: new Date(p.requested_at).toLocaleDateString() })));
       } catch (err) {
         // ignore
       }

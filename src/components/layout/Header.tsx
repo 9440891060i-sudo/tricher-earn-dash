@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, User } from "lucide-react";
 import { useState } from "react";
 
 export function Header() {
@@ -43,6 +43,9 @@ export function Header() {
               <Link to="/support" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Support
               </Link>
+              <Link to="/profile" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Profile
+              </Link>
             </>
           )}
         </nav>
@@ -59,9 +62,16 @@ export function Header() {
               </Button>
             </>
           ) : (
-            <Button variant="ghost" asChild>
-              <Link to="/">Logout</Link>
-            </Button>
+            <>
+              <Button variant="ghost" size="icon" asChild>
+                <Link to="/profile">
+                  <User className="h-5 w-5" />
+                </Link>
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link to="/">Logout</Link>
+              </Button>
+            </>
           )}
         </div>
 
@@ -133,6 +143,14 @@ export function Header() {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Support
+                </Link>
+                <Link 
+                  to="/profile" 
+                  className="py-2 text-muted-foreground hover:text-foreground flex items-center gap-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <User className="h-4 w-4" />
+                  Profile Settings
                 </Link>
                 <div className="pt-3 border-t border-border">
                   <Button variant="outline" asChild className="w-full">

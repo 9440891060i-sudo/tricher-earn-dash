@@ -208,17 +208,17 @@ export default function Dashboard() {
             <div className="bg-background rounded-xl border border-border p-4 md:p-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-                  <DollarSign className="h-5 w-5 text-muted-foreground" />
+                  {/* <DollarSign className="h-5 w-5 text-muted-foreground" /> */}
                 </div>
               </div>
-              <div className="text-2xl md:text-3xl font-bold">₹{stats.totalSales}</div>
+              <div className="text-2xl md:text-3xl font-bold">₹{stats.totalSales * 4499}</div>
               <div className="text-sm text-muted-foreground mt-1">Total Sales</div>
             </div>
 
             <div className="bg-background rounded-xl border border-border p-4 md:p-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-                  <TrendingUp className="h-5 w-5 text-muted-foreground" />
+                  {/* <TrendingUp className="h-5 w-5 text-muted-foreground" /> */}
                 </div>
               </div>
               <div className="text-2xl md:text-3xl font-bold">₹{stats.totalEarnings}</div>
@@ -228,7 +228,7 @@ export default function Dashboard() {
             <div className="bg-background rounded-xl border border-border p-4 md:p-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-                  <Tag className="h-5 w-5 text-muted-foreground" />
+                  {/* <Tag className="h-5 w-5 text-muted-foreground" /> */}
                 </div>
               </div>
               <div className="text-2xl md:text-3xl font-bold">{stats.codeUses}</div>
@@ -238,7 +238,7 @@ export default function Dashboard() {
             <div className="bg-background rounded-xl border border-border p-4 md:p-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-                  <Clock className="h-5 w-5 text-muted-foreground" />
+                  {/* <Clock className="h-5 w-5 text-muted-foreground" /> */}
                 </div>
               </div>
               <div className="text-2xl md:text-3xl font-bold">₹{stats.pendingPayout}</div>

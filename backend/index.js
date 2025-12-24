@@ -44,8 +44,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/payouts', require('./routes/payouts'));
 app.use('/api/identity', require('./routes/identity'));
 
-// serve uploads
-app.use('/uploads', express.static(__dirname + '/uploads'));
+
 
 app.get('/', (req, res) => res.json({ ok: true }));
 

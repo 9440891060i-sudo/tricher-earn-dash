@@ -26,18 +26,18 @@ export function Header() {
               <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Features
               </a>
-              <a href="#leaderboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              {/* <a href="#leaderboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Leaderboard
-              </a>
+              </a> */}
             </>
           ) : (
             <>
               <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Dashboard
               </Link>
-              <Link to="/leaderboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              {/* <Link to="/leaderboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Leaderboard
-              </Link>
+              </Link> */}
               <Link to="/support" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Support
               </Link>

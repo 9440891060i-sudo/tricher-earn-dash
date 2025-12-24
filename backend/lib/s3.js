@@ -1,7 +1,7 @@
-const AWS = require('aws-sdk');
+const AWS = require("aws-sdk");
 
 const s3 = new AWS.S3({
-  region: 'ap-south-1'
+  region: process.env.AWS_REGION
 });
 
 module.exports = s3;

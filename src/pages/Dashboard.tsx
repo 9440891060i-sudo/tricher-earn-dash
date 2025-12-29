@@ -27,24 +27,24 @@ export default function Dashboard() {
   const [payoutsState, setPayoutsState] = useState<any[]>([]);
   const [codes, setCodes] = useState<any[]>(initialCodes);
   const [newCode, setNewCode] = useState("");
-  const [commission, setCommission] = useState(15);
+  const [commission, setCommission] = useState(10);
   const [discount, setDiscount] = useState(10);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const remaining = 25 - commission - discount;
+  const remaining = 20 - commission - discount;
   const isValid = remaining >= 0 && commission >= 0 && discount >= 0;
 
   const handleCommissionChange = (value: number[]) => {
     const newCommission = value[0];
-    if (newCommission + discount <= 25) {
+    if (newCommission + discount <= 20) {
       setCommission(newCommission);
     }
   };
 
   const handleDiscountChange = (value: number[]) => {
     const newDiscount = value[0];
-    if (commission + newDiscount <= 25) {
+    if (commission + newDiscount <= 20) {
       setDiscount(newDiscount);
     }
   };
@@ -56,7 +56,7 @@ export default function Dashboard() {
         return;
       }
       if (!isValid) {
-        toast({ title: 'Error', description: 'Commission + Discount cannot exceed 25%', variant: 'destructive' });
+        toast({ title: 'Error', description: 'Commission + Discount cannot exceed 20%', variant: 'destructive' });
         return;
       }
       try {
@@ -263,7 +263,7 @@ export default function Dashboard() {
                   <Slider
                     value={[commission]}
                     onValueChange={handleCommissionChange}
-                    max={25}
+                    max={20}
                     step={1}
                     className="w-full"
                   />
@@ -277,7 +277,7 @@ export default function Dashboard() {
                   <Slider
                     value={[discount]}
                     onValueChange={handleDiscountChange}
-                    max={25}
+                    max={20}
                     step={1}
                     className="w-full"
                   />
@@ -291,7 +291,7 @@ export default function Dashboard() {
                     <span className={`text-4xl font-bold ${isValid ? "text-foreground" : "text-destructive"}`}>
                       {commission + discount}%
                     </span>
-                    <span className="text-muted-foreground">/ 25%</span>
+                    <span className="text-muted-foreground">/ 20%</span>
                   </div>
                   <div className="mt-3 text-sm">
                     <span className={remaining >= 0 ? "text-success" : "text-destructive"}>
